@@ -2,8 +2,12 @@ from numpy import *
 from os import path
 from Satpass import Sateph
 from argparse import ArgumentParser
+from subprocess import call
 
 base_dir = './'
+
+call('mkdir -p %saligned_data' %base_dir,shell=True)
+call('mkdir -p %sTLE' %base_dir,shell=True)
 
 # AUT_tile_list = ['S21','S22','S23','S24','S25','S26','S27','S28']
 AUT_tile_list = ['S21','S22','S23','S24']
