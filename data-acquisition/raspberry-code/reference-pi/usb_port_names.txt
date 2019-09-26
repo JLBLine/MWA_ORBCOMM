@@ -1,0 +1,4 @@
+1-1.2.4 ttyUSB0
+1-1.2.6 ttyUSB1
+1-1.2.5.2 ttyUSB2
+1-1.2.5.4 ttyUSB3
