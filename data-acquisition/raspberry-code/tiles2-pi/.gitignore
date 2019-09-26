@@ -1,0 +1,5 @@
+data/
+data/*
+data/*/*
+home/jline/rf*.txt
+t2.txt
