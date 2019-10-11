@@ -1,32 +1,33 @@
-from numpy import *
+#from numpy import *
+import numpy as np
 import matplotlib
 ##Protects clusters where no $DISPLAY is set when running PBS/SLURM
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import argparse
+import time
 
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-def add_colourbar(fig=None,ax=None,im=None,label=False):
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    cbar = fig.colorbar(im, cax = cax)
-    if label:
-        cbar.set_label(label)
-
-refs = {0:'rf0',1:'rf1'}
-tiles = {0:'S21',1:'S22',2:'S23',3:'S24',4:'S25',5:'S26',6:'S27',7:'S28'}
-pol = 'XX'
+# from mpl_toolkits.axes_grid1 import make_axes_locatable
+#
+# def add_colourbar(fig=None,ax=None,im=None,label=False):
+#     divider = make_axes_locatable(ax)
+#     cax = divider.append_axes("right", size="5%", pad=0.05)
+#
+#     if label:
+#         cbar.set_label(label)
 
 parser = argparse.ArgumentParser(description='Waterfall plot an ORBCOMM observation')
-parser.add_argument('--data_loc', type=str, default='./',
+parser.add_argument('--data_loc', type=str, default='./data',
                     help='Where the data folders live.')
-parser.add_argument('--data_tiles', type=str,default='data_tiles',
-                    help='Name of folder containing tile data - should have data in folders named by date withing. Default = data_tiles')
-parser.add_argument('--data_refs', type=str,default='data_refs',
-                    help='Name of folder containing reference dipole data - should have data in folders named by date withing. Default = data_refs')
+#parser.add_argument('--sub_folder', type=str,default='/',
+#                    help='If the data live in a subfolder in data_loc, add it here')
 parser.add_argument('--date', type=str,
                     help='Date/time of the obs in the following format: YY-MM-dd-hh:mm e.g 2017-08-15-17:00')
+parser.add_argument('--day', type=str,
+                    help='Date of the observations in the following format: YY-MM-dd e.g 2017-08-15')
+#parser.add_argument('--plot_names', type=str,
+#                    help='Text file containing the names of the references/tiles with pols, e.g. S33XX or rf0XX')
 
 args = parser.parse_args()
 
@@ -35,11 +36,11 @@ if data_loc[-1] == '/':
     pass
 else:
     data_loc += '/'
-data_tiles=args.data_tiles
-data_refs=args.data_refs
 date = args.date
-print 'The date is %s' %date
 
+day= args.day
+
+names = ['rf0XX', 'rf0YY', 'rf1XX', 'rf1YY', 'S06XX', 'S06YY', 'S07XX', 'S07YY', 'S08XX', 'S08YY', 'S09XX', 'S09YY', 'S10XX', 'S10YY', 'S12XX', 'S12YY', 'S29XX', 'S29YY', 'S30XX', 'S30YY', 'S31XX', 'S31YY', 'S32XX', 'S32YY', 'S33XX', 'S33YY', 'S34XX', 'S34YY', 'S35XX', 'S35YY', 'S36XX', 'S36YY']
 
 def read_data(filename):
     '''Converts raw data into power'''
@@ -54,7 +55,11 @@ def read_data(filename):
             data_lines.append(data)
         except:
             pass
+    
+    times = [float(i) for i in times]
 
+    #times = [time.strftime('%H:%M:%S', time.localtime(i-7200)) for i in times]
+       
     power_lines = []
 
     for data in data_lines:
@@ -64,70 +69,101 @@ def read_data(filename):
         power_lines.append(powers)
 
 
-    waterfall = array(power_lines)
+    waterfall = np.array(power_lines)
     waterfall.shape = (len(times),len(powers))
-    return waterfall
+    data = [waterfall, times]
+    return data
+    #return waterfall
+
+def mkdir_p(mypath):
+    '''Creates a directory. equivalent to using mkdir -p on the command line'''
+
+    from errno import EEXIST
+    from os import makedirs,path
+
+    try:
+        makedirs(mypath)
+    except OSError as exc: # Python >2.5
+        if exc.errno == EEXIST and path.isdir(mypath):
+            pass
+        else: raise
+ 
 
 ##Loop over tiles and plot waterfalls
-for tile_ind,tile_name in tiles.iteritems():
+for name in names:
     try:
 
-        waterfall = read_data('%sdata_tiles/%s/%s%s_%s.txt' %(data_loc,date,tile_name,pol,date))
-        #print './data_tiles/%s/%s%s_%s.txt' %(date,tile_name,pol,date)
+        #waterfall = read_data('%s/%s/%s/%s_%s.txt' %(data_loc,sub_folder,date,name,date))
+        waterfall= read_data('%s/%s/%s/%s_%s.txt' %(data_loc,name,day,name,date))
+        data = read_data('%s/%s/%s/%s_%s.txt' %(data_loc,name,day,name,date))
+        waterfall = data[0]
+        times = np.array(data[1]).astype(np.float)
+        
+        t = []
+        for i in range(len(times)):
+             t.append(time.strftime('%H:%M', time.gmtime(times[i]+28800))) #28800=+8GMT PERTH
+        
+        int = len(t)/5
+        tm = t[::int]
+       
+        plt.style.use('dark_background')
 
-        ##Just plot tiles S21 and S28
-        if tile_name == 'S21' or tile_name == 'S28':
-            fig = plt.figure(figsize = (10,10))
+        fig = plt.figure(figsize = (7,8))
 
-            ax = fig.add_subplot(111)
+        # ax = fig.add_subplot(111)
 
-            for_vlevels = waterfall[:,:80]
-            vmin = for_vlevels.min()
-            vmax = for_vlevels.max()
+        ax = fig.add_axes([0.1,0.1,0.8,0.85])
 
-            #vmin = -150
-            #vmax = -100
+        for_vlevels = waterfall[:,:]
+        #for_vlevels = waterfall[:,:80]
+        
+        #vmin = for_vlevels.min()
+        #vmax = for_vlevels.max()
+       
+        median = np.median(waterfall)
+        image = waterfall - median
 
-            im = ax.imshow(waterfall,vmin=vmin,vmax=vmax,interpolation='none',cmap='viridis') #
-            ax.set_ylabel('Time step')
-            ax.set_xlabel('Freq channel')
-            ax.set_aspect('auto')
-            add_colourbar(ax=ax,im=im,fig=fig)
-            print 'saving %s_waterfall_%s.png' %(tile_name,date)
-            fig.savefig('%s_waterfall_%s.png' %(tile_name,date))
+        vmin = 0
+        vmax = 30
+
+       # vmin = np.median(for_vlevels) + 2
+       # vmax = vmin + 30
+
+        #im = ax.imshow(waterfall,vmin=vmin,vmax=vmax,interpolation='none',cmap='viridis') 
+        im = ax.imshow(image,vmin=vmin,vmax=vmax,interpolation='none',cmap='Spectral') 
+
+        yax = waterfall.shape[1]
+        start_freq = 137.15
+        stop_freq = 138.55
+
+        freqs = np.arange(start_freq, stop_freq, 0.25)
+
+        x_ticks = np.arange(0,yax,(0.25/0.0125))
+        ax.set_xticks(x_ticks)
+        ax.set_xticklabels(freqs)
+
+        y_ticks = np.arange(0,len(t),int)
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels(tm)
+
+
+        ax.set_ylabel('Time [HH:MM]')
+        ax.set_xlabel('Freq [MHz]')
+        ax.set_aspect('auto')
+        # add_colourbar(ax=ax,im=im,fig=fig)
+        cax = fig.add_axes([0.91,0.1,0.03,0.85])
+        cbar = fig.colorbar(im, cax = cax)
+
+
+
+#        print 'saving %s_waterfall_%s.png' %(name,date)
+
+        
+        output_dir = '/fred/oz048/achokshi/mwa_sats/outputs/waterfalls/plots/%s/%s' %(day,date)
+        mkdir_p(output_dir)
+        fig.savefig('%s/%s_waterfall_%s.png' %(output_dir,name,date),bbox_inches='tight')
 
 #            plt.show()
-            plt.close()
+        plt.close()
     except:
-        print('%sdata_tiles/%s/%s%s_%s.txt is missing' %(data_loc,date,tile_name,pol,date))
-
-##Loop over reference antennas and plot waterfalls
-for ref_ind,ref_name in refs.iteritems():
-   try:
-       waterfall = read_data('%s/data_refs/%s/%s%s_%s.txt' %(data_loc,date,ref_name,pol,date))
-
-       fig = plt.figure(figsize = (10,10))
-
-       ax = fig.add_subplot(111)
-
-       im = ax.imshow(waterfall,interpolation='none',cmap='viridis')
-       ax.set_aspect('auto')
-       ax.set_ylabel('Time step')
-       ax.set_xlabel('Freq channel')
-
-       add_colourbar(ax=ax,im=im,fig=fig)
-       ax.set_aspect('auto')
-
-       ax.set_xticks(arange(0,112,2), minor=True)
-       ax.set_xticks(arange(0,112,8))
-
-       ax.grid(color='w',linewidth=0.5,alpha=0.3,axis='x',which='major')
-       ax.grid(color='w',linewidth=0.3,alpha=0.3,axis='x',which='minor')
-
-
-
-       print 'saving %s_waterfall_%s.png' %(ref_name,date)
-       fig.savefig('%s_waterfall_%s.png' %(ref_name,date))
-       plt.close()
-   except:
-       print('%s/data_refs/%s/%s%s_%s.txt is missing' %(data_loc,date,ref_name,pol,date))
+        print('%s/%s/%s/%s_%s.txt is missing' %(data_loc,name,day,name,date))
