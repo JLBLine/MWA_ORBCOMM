@@ -128,3 +128,4 @@ dmypy.json
 ## PNG / NPZ
 *.png
 *.npz
+*DS*
