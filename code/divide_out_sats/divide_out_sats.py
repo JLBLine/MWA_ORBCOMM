@@ -12,7 +12,7 @@ np.seterr(divide='ignore')
 import matplotlib.pyplot as plt
 import time, datetime
 import math
-from reproject import reproject_from_healpix, reproject_to_healpix
+#from reproject import reproject_from_healpix, reproject_to_healpix
 from astropy.io import fits
 from glob import glob
 from scipy.ndimage.interpolation import shift
