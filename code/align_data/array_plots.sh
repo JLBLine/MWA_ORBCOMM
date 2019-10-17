@@ -15,7 +15,7 @@ echo "#!/bin/bash
 #SBATCH --error=/fred/oz048/achokshi/mwa_sats/outputs/waterfalls/slurm-err/waterfall-%A-%a.err
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --time=00:40:00
+#SBATCH --time=00:35:00
 #SBATCH --partition=skylake
 #SBATCH --account=oz048
 #SBATCH --export=ALL
