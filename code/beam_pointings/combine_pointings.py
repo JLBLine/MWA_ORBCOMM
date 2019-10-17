@@ -1,8 +1,10 @@
 import json
 import os, os.path
 import numpy as np
-import matplotlib.mlab as mlab
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 files =  len([name for name in os.listdir('./pointings') if os.path.isfile(os.path.join('./pointings', name))])
 
@@ -31,6 +33,29 @@ for i in range(len(table)):
 
 #sorting by pointings and keeping obs_len in sync 
 pointings, obs_length = (list(t) for t in zip(*sorted(zip(pointings, obs_length))))
+pointings = np.asarray(pointings)
+obs_length = np.asarray(obs_length)
+
+
+point_list = np.unique(pointings)
+
+int_times = []
+for p in point_list:
+    int_times.append(np.sum(obs_length[np.nonzero(pointings == p)]))
+
+int_times = np.asarray(int_times).astype(float)
+int_times = int_times/(3600)
+
+x_pos = np.arange(len(point_list))
+
+plt.figure(figsize=(15,8))
+plt.bar(x_pos, int_times, color='#2d4059',edgecolor='#f07b3f',linewidth=1.6, alpha=0.8)
+plt.xticks(x_pos, point_list, rotation='vertical',fontsize=9)
+plt.ylabel('Total Integration [Hours]')
+plt.xlabel('MWA Grid Pointing Number')
+plt.xlim(min(x_pos)-1,max(x_pos)+1)
+plt.savefig('pointings.png', bbox_inches='tight')
+
 
 #with open('./pointings.txt', 'w') as f:
 #        for item in table:
