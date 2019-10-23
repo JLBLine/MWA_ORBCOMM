@@ -1,6 +1,10 @@
 from numpy import *
 from argparse import ArgumentParser
 
+import matplotlib
+##Protects clusters where no $DISPLAY is set when running PBS/SLURM
+# Force matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import os
@@ -29,6 +33,8 @@ sat_list=['OC-G2','OC-A1','OC-A2','OC-A3','OC-A4','OC-A5','OC-A6','OC-A7','OC-A8
 bad_chan=86
 ##Healpix projection to use
 nside=32
+
+output_dir = '/fred/oz048/achokshi/mwa_sats/outputs/divide_sats'
 
 parser = ArgumentParser(description='Apply noise and satellite criteria to raw data, and project onto healpix projection')
 
@@ -619,7 +625,7 @@ def generate_pb_map(AUT_tile_name_in,ref_tile_name_in):
                             ax5.axhline(ref_signal_threshold,label='Ref Threshold',color='b')
                             ax5.legend()
 
-                            fig.savefig('noise_%s_%d.png' %(sat_above_thresh.desig,int(AUT_time_above_alt[0])),bbox_inches='tight')
+                            fig.savefig('%s/noise_%s_%d.png' %(output_dir,sat_above_thresh.desig,int(AUT_time_above_alt[0])),bbox_inches='tight')
                             plt.close()
 
                         ##For each good index, use sat info to project onto healpix
@@ -726,7 +732,7 @@ def generate_pb_map(AUT_tile_name_in,ref_tile_name_in):
         data_counter = process_time_chunk(this_date=dates[date_ind],finish_date=dates[date_ind+1],used_sats=used_sats,data_counter=data_counter,channels_used=channels_used)
 
     ##Saves which frequency channels were used
-    savez_compressed('used_channels_%s_%s.npz' %(AUT_tile_name,ref_tile_name),channels=channels_used)
+    savez_compressed('%s/used_channels_%s_%s.npz' %(output_dir,AUT_tile_name,ref_tile_name),channels=channels_used)
 
     ##Does some data formatting on the final maps
     AUT_tile_map_W_medded = [median(pixel) for pixel in AUT_tile_map_W_med]
@@ -737,8 +743,8 @@ def generate_pb_map(AUT_tile_name_in,ref_tile_name_in):
     AUT_tile_map_dB_av=10.0*np.log10(AUT_tile_map_W_av)
 
     ##Save a bunch o data to get some stats out later
-    savez_compressed('rotated_sat-removed_full_AUT_%s_ref_%s.npz' %(AUT_tile_name,ref_tile_name),raw_data_W=AUT_tile_map_W_med,data_counter=AUT_tile_map_data_entries_counter,tile_map_sat_times=tile_map_sat_times,tile_map_sat_names=tile_map_sat_names,ref_tile_map_dB_med=ref_tile_map_dB_med)
-    savez_compressed('rotated_sat-removed_med_AUT_%s_ref_%s.npz' %(AUT_tile_name,ref_tile_name),AUT_tile_map_dB_med=AUT_tile_map_dB_med)
+    savez_compressed('%s/rotated_sat-removed_full_AUT_%s_ref_%s.npz' %(output_dir,AUT_tile_name,ref_tile_name),raw_data_W=AUT_tile_map_W_med,data_counter=AUT_tile_map_data_entries_counter,tile_map_sat_times=tile_map_sat_times,tile_map_sat_names=tile_map_sat_names,ref_tile_map_dB_med=ref_tile_map_dB_med)
+    savez_compressed('%s/rotated_sat-removed_med_AUT_%s_ref_%s.npz' %(output_dir,AUT_tile_name,ref_tile_name),AUT_tile_map_dB_med=AUT_tile_map_dB_med)
 
     # savez_compressed('sat-removed_full_AUT_%s_ref_%s.npz' %(AUT_tile_name,ref_tile_name),raw_data_W=AUT_tile_map_W_med,data_counter=AUT_tile_map_data_entries_counter,tile_map_sat_times=tile_map_sat_times,tile_map_sat_names=tile_map_sat_names,ref_tile_map_dB_med=ref_tile_map_dB_med)
     # savez_compressed('sat-removed_med_AUT_%s_ref_%s.npz' %(AUT_tile_name,ref_tile_name),AUT_tile_map_dB_med=AUT_tile_map_dB_med)

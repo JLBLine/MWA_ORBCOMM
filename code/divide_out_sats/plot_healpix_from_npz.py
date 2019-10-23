@@ -1,7 +1,13 @@
 from numpy import *
+import matplotlib
+##Protects clusters where no $DISPLAY is set when running PBS/SLURM
+# Force matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from argparse import ArgumentParser
 import healpy as hp
+
+output_dir = '/fred/oz048/achokshi/mwa_sats/outputs/divide_sats'
 
 parser = ArgumentParser(description='Plot healpix data saved in an npz array')
 
@@ -13,6 +19,9 @@ args = parser.parse_args()
 
 nside = 32
 len_empty_healpix = 12288
+
+outname = args.outname
+data = args.filename
 
 def plot_healpix(data_map=None,sub=None,title=None,vmin=None,vmax=None,cmap=None):
     '''Yeesh do some healpix magic to plot the thing'''
@@ -40,7 +49,7 @@ def plot_healpix(data_map=None,sub=None,title=None,vmin=None,vmax=None,cmap=None
     hp.projtext(90.0*(pi/180.0), 180.0*(pi/180.0), r'$180^\circ$', coord='E',color='k')
     hp.projtext(90.0*(pi/180.0), 270.0*(pi/180.0), r'$270^\circ$', coord='E',color='k')
 
-data = load(args.filename,allow_pickle=True)
+data = load('%s/%s' %(output_dir,data),allow_pickle=True)
 raw_data_W = data[args.npz_array_name]
 
 AUT_map_W_med = [median(pixel) for pixel in raw_data_W]
@@ -51,4 +60,4 @@ fig = plt.figure(figsize=(10,10))
 
 plot_healpix(data_map=AUT_map_dB_med,sub=(1,1,1))
 
-plt.savefig(args.outname,bbox_inches='tight')
+plt.savefig('%s/%s' %(output_dir,outname),bbox_inches='tight')
