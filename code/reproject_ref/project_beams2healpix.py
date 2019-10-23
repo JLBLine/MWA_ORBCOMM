@@ -1,13 +1,18 @@
 from numpy import *
+import matplotlib
+##Protects clusters where no $DISPLAY is set when running PBS/SLURM
+# Force matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import healpy as hp
-from my_plotting_lib import add_colourbar
+#from my_plotting_lib import add_colourbar
 from scipy import interpolate
 
 
 ##Healpix constants
 nside = 32
 len_empty_healpix = 12288
+
 
 def plot_healpix(data_map=None,sub=None,title=None,vmin=None,vmax=None,cmap=None):
     '''Does some plotting what what'''
@@ -93,8 +98,12 @@ def create_model(file_name=None,tag=None):
 
     return beam_response,theta_mesh,phi_mesh,power,theta
 
-healpix_east,theta_mesh,phi_mesh,power_east,theta = create_model(file_name='MWA_single_dipole_finite_gnd_Eastern_FarField1.ffe',tag='Eastern')
-healpix_west,theta_mesh,phi_mesh,power_west,theta = create_model(file_name='MWA_single_dipole_finite_gnd_Western_FarField1.ffe',tag='Western')
+
+healpix_east,theta_mesh,phi_mesh,power_east,theta = create_model(file_name='MWA_single_elem_XPol_FarField1.ffe',tag='XX Polarization')
+healpix_west,theta_mesh,phi_mesh,power_west,theta = create_model(file_name='MWA_single_elem_YPol_FarField1.ffe',tag='YY Polarization')
+
+#healpix_east,theta_mesh,phi_mesh,power_east,theta = create_model(file_name='MWA_single_dipole_finite_gnd_Eastern_FarField1.ffe',tag='Eastern')
+#healpix_west,theta_mesh,phi_mesh,power_west,theta = create_model(file_name='MWA_single_dipole_finite_gnd_Western_FarField1.ffe',tag='Western')
 
 ##Plot the things to sanity check and save results
 fig = plt.figure(figsize=(10,10))
@@ -103,17 +112,17 @@ ax1 = fig.add_subplot(221,projection='polar')
 ax2 = fig.add_subplot(222,projection='polar')
 
 im1 = ax1.pcolormesh(phi_mesh*(pi/180.0),theta_mesh,power_east,label='Eastern',vmin=-40,vmax=-20)
-ax1.set_title('Eastern')
+ax1.set_title('XX Polarization')
 
 ax1.grid(color='k',alpha=0.3)
 
 im2 = ax2.pcolormesh(phi_mesh*(pi/180.0),theta_mesh,power_west,label='Western',vmin=-40,vmax=-20)
-ax2.set_title('Western')
+ax2.set_title('YY Polarization')
 
 ax2.grid(color='k',alpha=0.3)
 
-plot_healpix(data_map=healpix_east,sub=(2,2,3),title='Healpix Eastern',vmin=-40,vmax=-20)
-plot_healpix(data_map=healpix_west,sub=(2,2,4),title='Healpix Western',vmin=-40,vmax=-20)
+plot_healpix(data_map=healpix_east,sub=(2,2,3),title='Healpix XX Polarization',vmin=-40,vmax=-20)
+plot_healpix(data_map=healpix_west,sub=(2,2,4),title='Healpix YY Polarization',vmin=-40,vmax=-20)
 
 savez_compressed('ung_dipole_models.npz',eastern=healpix_east,western=healpix_west)
 
