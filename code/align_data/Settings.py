@@ -5,6 +5,8 @@
 from subprocess import Popen, PIPE
 
 base_dir='./'
+#base_dir='/fred/oz048/achokshi/mwa_sats/outputs'
+#code_dir='/fred/oz048/achokshi/mwa_sats/MWA_ORBCOMM/code/align_data'
 
 # Print formatting
 lb = "\n"+"*"*70+'\n'
@@ -22,11 +24,18 @@ fault =  {1                : "TLE: %s\nin %s does not belong to satellite",
           #'TLEpath'        : base_dir+'/BeamPlot/TLE/%s.txt',
           #'Nov2015'        : '/data/beam/Oct_16/Obs/Nov2015/satpasses.txt'}
 
-## File locations
+# File locations
 floc =   {'satdata'        : base_dir+'/Sat_Data.csv',
           'TLE'            : base_dir+'/TLE',
           'TLEpath'        : base_dir+'/TLE/%s.txt',
           'Nov2015'        : '/data/beam/Oct_16/Obs/Nov2015/satpasses.txt'}
+
+### File locations
+#floc =   {'satdata'        : code_dir+'/Sat_Data.csv',
+#          'TLE'            : base_dir+'/TLE',
+#          'TLEpath'        : base_dir+'/TLE/%s.txt',
+#          'Nov2015'        : '/data/beam/Oct_16/Obs/Nov2015/satpasses.txt'}
+
 
 # Read from file
 read =   {'head'           : lambda f: Popen(['head', '-1', f],
