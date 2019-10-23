@@ -129,3 +129,12 @@ dmypy.json
 *.png
 *.npz
 *DS*
+
+code/align_data/TLE/
+code/align_data/align_data_2.py
+code/beam_pointings/pointings.txt
+code/beam_pointings/pointings/
+
+code/align_data/TLEcookies.txt
+code/align_data/TLEdownload.txt
+
