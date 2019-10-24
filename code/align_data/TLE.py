@@ -49,7 +49,8 @@ class TLE_config(object):
                         tlelast = tletime
             if dupto > tmax:
                 break
-            tlelast=tm(tlelast+chunk)
+            tlelast=tm(tlelast)
+            #tlelast=tm(tlelast+chunk)
         print 'OK'
         
         self.data = open(self.validate())              # Validate then mount database
